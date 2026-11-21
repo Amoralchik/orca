@@ -200,6 +200,22 @@ describe('a file that ends in an open fence', () => {
     const after = { added: [{ line: '- new', after: 'code' }], removed: [] }
     expect(applyBotMemoryChange(closed, after)).toBe('- new\n```\ncode\n```\n- old\n')
   })
+
+  it('keeps each of several restored facts out of every fence, in order', () => {
+    const text = '- old\n```\ncode\n```\nprose\n```sh\npnpm build\n'
+    const change = {
+      added: [
+        { line: '- a', after: 'code' },
+        { line: '- b', after: '- a' },
+        { line: '- c', after: 'pnpm build' },
+        { line: '- d', after: '- c' }
+      ],
+      removed: []
+    }
+    expect(applyBotMemoryChange(text, change)).toBe(
+      '- old\n- a\n- b\n```\ncode\n```\nprose\n- c\n- d\n```sh\npnpm build\n'
+    )
+  })
 })
 
 describe('a line a removed fence uncovers', () => {
