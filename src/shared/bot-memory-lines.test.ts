@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
   addBotMemoryFact,
+  applyBotMemoryChange,
+  botMemoryChange,
   botMemoryDate,
   countBotMemoryLines,
   editBotMemoryFact,
@@ -171,6 +173,32 @@ describe('bot memory lines', () => {
 
   it('dates by the local calendar', () => {
     expect(botMemoryDate(new Date(2026, 0, 5, 23, 59))).toBe('2026-01-05')
+  })
+})
+
+describe('a file that ends in an open fence', () => {
+  const OPEN = '# Notes\n\n```sh\npnpm build\n'
+
+  it('gets a new fact above the fence, never inside it', () => {
+    const next = addBotMemoryFact(OPEN, 'Deploys at noon', '2026-11-21')
+    expect(next).toBe('# Notes\n\n- 2026-11-21 Deploys at noon\n```sh\npnpm build\n')
+    expect(botMemoryChange(OPEN, next).added.map(({ line }) => line)).toEqual([
+      '- 2026-11-21 Deploys at noon'
+    ])
+    expect(addBotMemoryFact('```\n', 'Only fact', '2026-11-21')).toBe(
+      '- 2026-11-21 Only fact\n```\n'
+    )
+  })
+
+  it('takes a fact added after a line in the fence, or at its end, above the fence', () => {
+    const fenced = { added: [{ line: '- restored', after: 'pnpm build' }], removed: [] }
+    expect(applyBotMemoryChange(OPEN, fenced)).toBe('# Notes\n\n- restored\n```sh\npnpm build\n')
+    const gone = { added: [{ line: '- restored', after: 'a line no longer there' }], removed: [] }
+    expect(applyBotMemoryChange(OPEN, gone)).toBe('# Notes\n\n- restored\n```sh\npnpm build\n')
+    // A closed fence takes nothing in either: a line after its code goes above it.
+    const closed = '```\ncode\n```\n- old\n'
+    const after = { added: [{ line: '- new', after: 'code' }], removed: [] }
+    expect(applyBotMemoryChange(closed, after)).toBe('- new\n```\ncode\n```\n- old\n')
   })
 })
 

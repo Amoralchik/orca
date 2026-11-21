@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, waitFor } from '@testing-library/react'
 import { type BotMemoryEdits, BotMemoryList } from './BotMemoryList'
 import { openAppHttpLink } from '@/lib/browser/navigation/app-http-link-open'
+import { toast } from 'sonner'
 
 vi.mock('@/lib/browser/navigation/app-http-link-open', () => ({ openAppHttpLink: vi.fn() }))
 vi.mock('sonner', () => ({ toast: { error: vi.fn() } }))
@@ -52,6 +53,7 @@ describe('BotMemoryList', () => {
     fireEvent.change(getByRole('textbox', { name: 'Add memory' }), { target: { value: 'A fact' } })
     fireEvent.click(getByRole('button', { name: 'Save' }))
     await waitFor(() => expect(memory.add).toHaveBeenCalledWith('A fact'))
+    await waitFor(() => expect(toast.error).toHaveBeenCalled())
     expect(getByRole('textbox', { name: 'Add memory' })).toHaveProperty('value', 'A fact')
   })
 
