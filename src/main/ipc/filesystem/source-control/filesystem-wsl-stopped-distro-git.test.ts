@@ -159,7 +159,9 @@ describe('background Git for a stopped WSL distro', () => {
 
   it.each([
     ['git:status', { worktreePath: UNC_ROOT }],
-    ['git:diff', { worktreePath: UNC_ROOT, filePath: 'a.ts', staged: false }]
+    ['git:diff', { worktreePath: UNC_ROOT, filePath: 'a.ts', staged: false }],
+    ['git:continueRebase', { worktreePath: UNC_ROOT, action: 'inspect' }],
+    ['git:rebaseAutoStash', { worktreePath: UNC_ROOT }]
   ])('%s refuses before resolving the path or running Git', async (channel, args) => {
     await expect(invoke(channel, args)).rejects.toBeInstanceOf(WslDistroStoppedError)
     expect(realpathMock).not.toHaveBeenCalled()
