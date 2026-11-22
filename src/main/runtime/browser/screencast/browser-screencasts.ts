@@ -37,7 +37,7 @@ import type {
 } from './browser-screencast-contracts'
 import { getRuntimeDesktopSurface } from '../../construction/runtime-desktop-surface'
 import { watchGuestPointer } from '../../../browser/guest-lifecycle/input/browser-guest-pointer-watch'
-import { askScreencastViewerPagePrompts } from './browser-screencast-page-prompts'
+import { startScreencastViewerEvents } from './browser-screencast-viewer-events'
 
 export class RuntimeBrowserScreencasts {
   private readonly activeScreencastsByPageId = new Map<string, ActiveBrowserScreencastPage>()
@@ -188,7 +188,7 @@ export class RuntimeBrowserScreencasts {
       delivery: INITIAL_SCREENCAST_SUBSCRIBER_DELIVERY,
       frameCredit: null,
       pointerEvents: params.pointerEvents === 1,
-      releasePagePrompts: null
+      stopViewerEvents: null
     }
     if (params.frameAck === 1) {
       const credit = createBrowserScreencastFrameCredit({
@@ -247,12 +247,12 @@ export class RuntimeBrowserScreencasts {
         // Replayed delivery is the first evidence that ghost eviction may use.
         deliverScreencastSubscriberFrame(subscriber, bytes)
       },
-      startPagePrompts: () => {
+      startViewerEvents: () => {
         const subscriber = active.subscribers.get(subscriptionId)
         if (subscriber) {
-          subscriber.releasePagePrompts = askScreencastViewerPagePrompts(
-            guest.id,
-            params.pagePrompts,
+          subscriber.stopViewerEvents = startScreencastViewerEvents(
+            { guestWebContentsId: guest.id, browserPageId },
+            params,
             stream
           )
         }

@@ -10,6 +10,7 @@ import { isRemoteBrowserPageMissingCode } from './remote-browser-stream-errors'
 import type { RemoteBrowserDialogPage } from './remote-browser-javascript-dialog'
 import type { RemoteBrowserViewportSize } from './remote-browser-stream-tokens'
 import type { RemoteBrowserPagePrompts } from './remote-browser-page-prompts'
+import { showRemoteBrowserDownloadNotice } from './remote-browser-download-notices'
 
 export type RemoteBrowserScreencastSubscribe = (
   args: { selector: string; method: string; params?: unknown; timeoutMs?: number },
@@ -95,7 +96,8 @@ export async function openRemoteBrowserScreencastStream(
         everyNthFrame: 1,
         minFrameIntervalMs: 33,
         pointerEvents: 1,
-        pagePrompts: 1
+        pagePrompts: 1,
+        downloads: 1
       }),
       timeoutMs: 15_000
     },
@@ -161,6 +163,11 @@ function dispatchScreencastResponse(
     events.pagePrompts.show(event.request, dialogPage)
   } else if (event.type === 'pagePromptClosed') {
     events.pagePrompts.close(event.requestId)
+  } else if (
+    (event.type === 'downloadRequested' || event.type === 'downloadFinished') &&
+    dialogPage.target.kind === 'environment'
+  ) {
+    showRemoteBrowserDownloadNotice(event, dialogPage.target.environmentId)
   } else if (event.type === 'error') {
     events.onFailed(event.message)
   }

@@ -7,6 +7,10 @@ import type {
   BrowserSessionProfileSource
 } from '../workspaces/browser-workspace-types'
 import type {
+  BrowserDownloadFinishedEvent,
+  BrowserDownloadRequestedEvent
+} from '../guest-lifecycle/browser-guest-events'
+import type {
   BrowserPagePromptRequest,
   BrowserStreamedPagePromptKind
 } from '../prompts/browser-page-prompt'
@@ -122,6 +126,10 @@ export type BrowserScreencastPagePromptClosedResult = {
   type: 'pagePromptClosed'
   requestId: string
 }
+/** Sent only to viewers that asked with `downloads: 1`: a page's download starting and ending, as a local window hears them. */
+export type BrowserScreencastDownloadResult =
+  | { type: 'downloadRequested'; download: BrowserDownloadRequestedEvent }
+  | { type: 'downloadFinished'; download: BrowserDownloadFinishedEvent }
 export type BrowserScreencastErrorResult = { type: 'error'; message: string }
 
 export type BrowserScreencastResult =
@@ -132,6 +140,7 @@ export type BrowserScreencastResult =
   | BrowserScreencastPointerResult
   | BrowserScreencastPagePromptResult
   | BrowserScreencastPagePromptClosedResult
+  | BrowserScreencastDownloadResult
   | BrowserScreencastErrorResult
 
 export type BrowserEvalResult = { result: string; origin: string }
